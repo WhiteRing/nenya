@@ -8,7 +8,6 @@ let initialState = {
   domain: {
     theme: 'default'
   }
-//  reply: () => { log.warn('Initial store reply.'); }
 };
 
 let actions = {
@@ -32,17 +31,7 @@ module.exports = () => {
 }
 
 function addDomainConfig (state, payload) {
-console.log('addDomainConfig');
-//  log.debug('State');
-//  log.debug(state);
-//  log.debug('Payload');
-//  log.debug(payload);
-//console.log('state');
-console.log(payload);
-
   state = Object.assign({}, state, payload);
-//console.log(state);
 
   return state;
 }
-

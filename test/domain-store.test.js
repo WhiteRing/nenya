@@ -39,9 +39,6 @@ describe ('With DomainStore', () => {
 
     let subscription = nenyaFlux.createSubscription(domainStore);
 
-console.log('action');
-console.log(actionType);
-
     it('call subscriber', (done) => {
       function testSubscriber (store) {
         console.log('Test subscriber');
@@ -51,10 +48,8 @@ console.log(actionType);
      
         done();
       }
-
+				
       subscription(testSubscriber, true);
-
-console.log(domainStore);
 
       fnAction(5);
 

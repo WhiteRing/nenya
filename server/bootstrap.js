@@ -39,6 +39,7 @@ function renderOutput (store) {
   content = mRender(m('html', [
     m('head', [
       m('title', domainData.title)
+//      m('link', {rel: 'shortcut icon', type: 'image/png', href: 'favicon.png'})
     ]),
     m('body', m.component(theme(domainData)))
   ]));
@@ -48,7 +49,7 @@ function render (conn) {
   let output = conn.hostname;
 
   let data = {
-    data: nDomains.getDomainConfig(conn.hostname)
+    domain: nDomains.getDomainConfig(conn.hostname)
   }
 
   output += actionDomainData(data);
@@ -57,6 +58,12 @@ function render (conn) {
 //  console.log(output);
 //      reply(output + '<pre>' + JSON.stringify(request.info) + '</pre>'); 
  
+  conn.html(200, content);
+
+/*  conn.status = 200;
+  conn.response.contentType = 'text/html';
+  conn.response.content = content;
+*/
   return content;
 }
 

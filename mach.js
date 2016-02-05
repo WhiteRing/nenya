@@ -1,12 +1,12 @@
 'use strict';
 
 let mach = require('mach');
-let bootstrap = require('./server/bootstrap')();
+let Bootstrap = require('./server/bootstrap.class');
 
 let app = mach.stack();
 
 app.use(mach.gzip);
-app.use(mach.logger);
+// app.use(mach.logger);
 app.use(mach.modified);
 app.use(mach.file, {
   root: __dirname + '/client/',
@@ -15,12 +15,13 @@ app.use(mach.file, {
   useETag: true
 });
 
-  app.use(mach.contentType, 'text/html');
-  app.use(mach.favicon);
-app.run((conn) => {
-  console.log('RUN');
+let bootstrap = new Bootstrap();
 
-  bootstrap.render(conn);
+app.use(mach.contentType, 'text/html');
+app.use(mach.favicon);
+app.run((conn) => {
+  // mach.logger(conn);
+  bootstrap.boot(conn);
 });
 
 mach.serve(app, {port: 8880});

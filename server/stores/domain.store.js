@@ -22,9 +22,15 @@ module.exports = () => {
   nStore.addAction(actions.ADD_DOMAIN_CONFIG, addDomainConfig);
 
   nStore.actions = actions;
-  nStore.getReply = () => {
+
+  nStore.getTheme = () => {
     let state = nStore.getState();
-    return state.reply;
+    return state.domain.theme;
+  };
+
+  nStore.getPalette = () => {
+    let state = nStore.getState();
+    return state.domain.palette;
   };
 
   return nStore;
@@ -35,3 +41,4 @@ function addDomainConfig (state, payload) {
 
   return state;
 }
+

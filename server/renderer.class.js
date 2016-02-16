@@ -2,51 +2,31 @@
 
 let m               = require('mithril');
 let mRender         = require('mithril-node-render');
-let nComponents     = require('nenya-components');
-console.log(nComponents);
-let nButton = new nComponents.base.button.component({});
+let NenyaComponents = require('nenya-components');
+let log             = require('winston');
 
-let MHtmlHead = {
-  controller: () => {},
-  view: () => {
-    return m('head')
-  }
-}
-
-let MHtmlBody = {
-  controller: () => {},
-  view: () => {
-    return m('body', m.component(nButton.m()));
-  }
-}
-
-let MHtml = {
-  controller: () => {},
-  view: () => {
-    return m('html', [
-      m.component(MHtmlHead),
-      m.component(MHtmlBody),
-    ]);
-  }
-}
+let nButton 		= new NenyaComponents.base.button.component({});
 
 
 
 class NenyaRenderer {
-  
+
   constructor (store) {
     this._appStore = store;
+    this._nHtml = new NenyaComponents.core.html.component(store);
+
   }
-  
+
   render () {
-    console.log('Renderer render');
+    log.info('Renderer render');
     let conn = this._appStore.getState().connection;
     let statusCode = this._appStore.statusCode;
-    let pageContent = mRender(MHtml.view());
-    
-    conn.html(statusCode, pageContent);    
+    let vDom = m.component(this._nHtml.m());
+    let pageContent = mRender(vDom);
+
+    conn.html(statusCode, pageContent);
   }
-  
+
 }
 
 

@@ -1,5 +1,10 @@
 {
-  "SET_ENVIRONMENT": "Set environment",
-  "APP_READY": "App is ready"
+  "GET_DOMAIN_CONFIG":  "GET_DOMAIN_CONFIG",
+  "SET_ENVIRONMENT":    "SET_ENVIRONMENT",
+  "SET_SITE_META":      "SET_SITE_META",
+  "ADD_PAGE_META":      "ADD_PAGE_META",
+  "SET_DATABASE":       "SET_DATABASE",
+  "SET_THEME":          "SET_THEME",
+  "APP_READY":          "APP_READY"
 }
 

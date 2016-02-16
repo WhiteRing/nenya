@@ -6,34 +6,36 @@ const CONF_PATH     = './conf';
 
 
 
-// let domainStore = {};// require('./stores/domain.store')();
 let nFlux           = require('nenya-flux')();
 let mRender         = require('mithril-node-render');
 let m               = require('mithril');
-let log             = require('bole')('#BOOT');
+let log             = require('winston');
 let AppStore        = require('./stores/app.store');
 let NenyaRenderer   = require('./renderer.class');
-let configurator    = require(CONF_PATH);
-// let nDomains = require('nenya-domains')(__dirname + '/');
+let Configurator    = require(CONF_PATH);
 
 
 
 class NenyaBootstrap {
     
   constructor () {
-    this._appStore = AppStore(_initialState());
-    this._appStoreSub = nFlux.createSubscription(this._appStore);
-    this._actions = _makeActions();
-    
+    this._appStore      = AppStore(_initialState());
+    this._appStoreSub   = nFlux.createSubscription(this._appStore);
+    this._actions       = _makeActions();
+    this._configurator  = Configurator(this._appStoreSub);
+        
     _bindSubscribers(this._appStoreSub);
   }
     
   boot (conn) {
-    console.log('Run');
+    log.info('// >>>>>>>>>>>>>>>');
+        
+    this._appStore.resetState();
     
-    configurator(this._appStoreSub).configure();
+    this._configurator.configure(conn.hostname);
 
-    // this.render();
+    log.info('// <<<<<<<<<<<<<<<');
+    
     this._actions.appReady(conn);
   }
     

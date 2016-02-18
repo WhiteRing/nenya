@@ -9,6 +9,37 @@ let NenyaFlux = require('nenya-flux')();
 let m         = require('mithril');
 let log       = require('bole')('#APP_STORE');
 
+let emptyState = {
+  //
+  // site meta
+  //  
+  meta:   {},
+  
+  //
+  // page meta with default output to html5
+  //  
+  page:   { 
+    docType: "html5" 
+  },
+     
+  //
+  // environment
+  //
+  env:    {},
+  
+  //
+  // theme handler
+  //
+  theme:  null,
+  
+  //
+  // database properties with an empty connection
+  //
+  db:     {
+    conn: null
+  }, 
+};
+
 
 
 module.exports = (initialState) => {
@@ -19,6 +50,9 @@ module.exports = (initialState) => {
 
 class AppStore extends NenyaFlux.NenyaStore {
   constructor (initialState) {
+    
+    initialState = Object.assign({}, emptyState, initialState);
+    
     super(initialState);
     
     this.addAction(ACTIONS.SET_ENVIRONMENT, setEnvironment);
@@ -36,7 +70,7 @@ class AppStore extends NenyaFlux.NenyaStore {
   get doctypeHeader () {
     let header = '';
     
-    if (this._state.docType === 'html5') {
+    if (this._state.page.docType === 'html5') {
       header = '<!doctype html>';
     }
     

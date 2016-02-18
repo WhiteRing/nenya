@@ -28,20 +28,26 @@ const ENV_LOGLEVEL = {
   PROD: 'error'
 };
 
+const THEME_PREFIX = 'nenya-t-';
+
+let confActions = {};
+
 
 
 class NenyaConfigurator extends NenyaFluxer {
 
   makeActions () {
-    this._getAppDomain  = nFlux.createAction(ACTIONS.GET_DOMAIN_CONFIG);
-    this._setAppEnv     = nFlux.createAction(ACTIONS.SET_ENVIRONMENT);
-    this._setAppDb      = nFlux.createAction(ACTIONS.SET_DATABASE);
-    this._setAppMeta    = nFlux.createAction(ACTIONS.SET_SITE_META);
-    this._defaults      = require(DEFAULTS_PATH); 
+    // confActions.getAppDomain  = nFlux.createAction(ACTIONS.GET_DOMAIN_CONFIG);
+    confActions.setAppEnv   = nFlux.createAction(ACTIONS.SET_ENVIRONMENT);
+    confActions.setAppDb    = nFlux.createAction(ACTIONS.SET_DATABASE);
+    confActions.setAppMeta  = nFlux.createAction(ACTIONS.SET_SITE_META);
+    
+    this._defaults = require(DEFAULTS_PATH); 
   }
 
   bindSubscriptions () {
     this.subscribeToAppStore(_configureLogger,    ACTIONS.SET_ENVIRONMENT);
+    this.subscribeToAppStore(_configureDatabase,  ACTIONS.SET_ENVIRONMENT);
     this.subscribeToAppStore(_configureSiteMeta,  ACTIONS.SET_SITE_META);
     this.subscribeToAppStore(_configureSiteTheme, ACTIONS.SET_SITE_META);
   }
@@ -49,16 +55,12 @@ class NenyaConfigurator extends NenyaFluxer {
   configure (hostName) {
     let config = this._defaults;
     let hostConfig = _getHostConfig(hostName);
-   
-    Object.assign(config, hostConfig); 
-    
-    // console.log(defaults);
-    
-    if (config.env.type) this._setAppEnv(config.env.type);
-    if (config.meta)     this._setAppMeta(config.meta);
-    if (config.database) this._setAppDb(config.database);
+      
+    Object.assign(config, hostConfig);
+        
+    if (config.env.type) confActions.setAppEnv(config.env.type);
+    if (config.meta)     confActions.setAppMeta(config.meta);
   }
-
 }
 
 
@@ -68,6 +70,13 @@ function _configureLogger (store) {
   log.level = ENV_LOGLEVEL[state.env];
   log.info('Log level ' + state.env);
 }
+
+function _configureDatabase (store) {
+  let state = store.getState();
+  let dbConf = require('./env/' + state.env.toLowerCase() + '.conf');
+  confActions.setAppDb(dbConf);
+}
+
 
 function _configureSiteMeta (store) {
   let addPageMeta = nFlux.createAction(ACTIONS.ADD_PAGE_META);
@@ -92,15 +101,18 @@ function _configureSiteTheme (store) {
   let themeHandler  = null;
   
   try {
-    themeHandler = require('nenya-theme-' + themeName); 
-  } catch (e) {
+    themeHandler = require(THEME_PREFIX + themeName); 
+ } catch (e) {
     themeName = 'default';
-    themeHandler = require('nenya-theme-default');
+    themeHandler = require(THEME_PREFIX + themeName); 
   }
   
   log.info('Use theme ' + themeName);
+  console.log(state);
   
   setTheme(themeHandler);
+  
+  
 }
 
 function _getHostConfig (hostName) {
@@ -131,6 +143,10 @@ function _getHostConfig (hostName) {
       status: 404,
       error: "The domain " + hostName + " is not configured on this server.<br/>" + hostConfPath
     };
+  }
+
+  if (typeof domainData != "object") {
+    return {};
   }
 
   return domainData;

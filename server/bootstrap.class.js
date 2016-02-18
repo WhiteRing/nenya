@@ -37,6 +37,8 @@ class NenyaBootstrap {
     log.info('// <<<<<<<<<<<<<<<');
     
     this._actions.appReady(conn);
+
+    log.info('.');
   }
     
 }
@@ -58,7 +60,7 @@ function _bindSubscribers (subscription) {
 }  
 
 function _initialState () {
-  return require(CONF_PATH + '/app.conf');
+  return {};
 } 
 
 function _render (store) {

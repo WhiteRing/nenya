@@ -28,8 +28,8 @@ module.exports = function(config) {
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
     	'stores/*.js': ['coverage'],
-		'test/index.js': ['webpack', 'sourcemap'],
-        'test/*.test.js': ['webpack', 'sourcemap']
+		  'test/index.js': ['webpack', 'sourcemap'],
+      'test/*.test.js': ['webpack', 'sourcemap']
     },
 
 	webpack: {
@@ -64,8 +64,13 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress', 'coverage'],
+    reporters: ['progress', 'coverage', 'mongo'],
 
+    // the default configuration 
+    mongoReporter: {
+      mongoURL: "mongodb://localhost:27017/nenya",
+      suite: ''
+    },
 
     // web server port
     port: 9876,

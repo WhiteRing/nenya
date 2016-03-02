@@ -6,10 +6,14 @@ module.exports = (store) => {
 
 
 
+let assert      = require('assert');
 let nFlux       = require('nenya-flux')();
 let log         = require('winston');
-let NenyaFluxer = require('../stores/abstract.flux');
+let NenyaFluxit = require('../stores/abstract.flux');
 let multisite   = require('nenya-multisite')(__dirname);
+let Q           = require('q');
+
+var mongoose    = require('mongoose');
 
 let domainsList = [];
 
@@ -30,36 +34,58 @@ const ENV_LOGLEVEL = {
 
 const THEME_PREFIX = 'nenya-t-';
 
-let confActions = {};
+let _confActions = {};
 
 
 
-class NenyaConfigurator extends NenyaFluxer {
+let schDomain = mongoose.Schema({
+    dom: String,
+    thm: String
+}, { collection: 'domains' });
+let ModDomain = mongoose.model('Domain', schDomain, 'domains');
+
+
+
+class NenyaConfigurator extends NenyaFluxit {
 
   makeActions () {
-    // confActions.getAppDomain  = nFlux.createAction(ACTIONS.GET_DOMAIN_CONFIG);
-    confActions.setAppEnv   = nFlux.createAction(ACTIONS.SET_ENVIRONMENT);
-    confActions.setAppDb    = nFlux.createAction(ACTIONS.SET_DATABASE);
-    confActions.setAppMeta  = nFlux.createAction(ACTIONS.SET_SITE_META);
+    // _confActions.getAppDomain  = nFlux.createAction(ACTIONS.GET_DOMAIN_CONFIG);
+    _confActions.setAppEnv        = nFlux.createAction(ACTIONS.SET_ENVIRONMENT);
+    _confActions.setAppDb         = nFlux.createAction(ACTIONS.SET_DATABASE);
+    _confActions.setAppMeta       = nFlux.createAction(ACTIONS.SET_SITE_META);
+    _confActions.setRequest       = nFlux.createAction(ACTIONS.SET_REQUEST);
+    // _confActions.setThemeName     = nFlux.createAction(ACTIONS.SET_THEME_NAME);
+    _confActions.setThemeHandler  = nFlux.createAction(ACTIONS.SET_THEME_HANDLER);
+    _confActions.configDone       = nFlux.createAction(ACTIONS.CONFIGURATION_DONE);
     
     this._defaults = require(DEFAULTS_PATH); 
   }
 
   bindSubscriptions () {
+    console.log('bindSubscriptions configurator');
     this.subscribeToAppStore(_configureLogger,    ACTIONS.SET_ENVIRONMENT);
     this.subscribeToAppStore(_configureDatabase,  ACTIONS.SET_ENVIRONMENT);
     this.subscribeToAppStore(_configureSiteMeta,  ACTIONS.SET_SITE_META);
-    this.subscribeToAppStore(_configureSiteTheme, ACTIONS.SET_SITE_META);
+    // this.subscribeToAppStore(_configureSiteTheme, ACTIONS.SET_THEME_NAME);
+    this.subscribeToAppStore(_loadDbConfig,       ACTIONS.DB_CONNECTED);
   }
 
-  configure (hostName) {
+  configure (conn) {
+    let hostName = conn.hostname;
+    let requestedPath = conn.location.properties.pathname; 
     let config = this._defaults;
     let hostConfig = _getHostConfig(hostName);
-      
+    console.log("# PATH " + requestedPath);
+    config.request = {
+      conn: conn,
+      path: requestedPath
+    };
+    
     Object.assign(config, hostConfig);
         
-    if (config.env.type) confActions.setAppEnv(config.env.type);
-    if (config.meta)     confActions.setAppMeta(config.meta);
+    if (config.request)  _confActions.setRequest(config.request);
+    if (config.env.type) _confActions.setAppEnv(config.env.type);
+    if (config.meta)     _confActions.setAppMeta(config.meta);
   }
 }
 
@@ -74,9 +100,8 @@ function _configureLogger (store) {
 function _configureDatabase (store) {
   let state = store.getState();
   let dbConf = require('./env/' + state.env.toLowerCase() + '.conf');
-  confActions.setAppDb(dbConf);
+  _confActions.setAppDb(dbConf);    
 }
-
 
 function _configureSiteMeta (store) {
   let addPageMeta = nFlux.createAction(ACTIONS.ADD_PAGE_META);
@@ -86,43 +111,15 @@ function _configureSiteMeta (store) {
     lang: "ro_RO"
   };
   
-  addPageMeta(page);
-  
-  log.info('Add metadata');
-  log.debug(page)
-  
+  addPageMeta(page);    
 }
   
-function _configureSiteTheme (store) {
-  let state = store.getState();
-  let setTheme = nFlux.createAction(ACTIONS.SET_THEME);
-   
-  let themeName     = typeof state.meta.theme === "undefined" ? "default" : state.meta.theme;
-  let themeHandler  = null;
-  
-  try {
-    themeHandler = require(THEME_PREFIX + themeName); 
- } catch (e) {
-    themeName = 'default';
-    themeHandler = require(THEME_PREFIX + themeName); 
-  }
-  
-  log.info('Use theme ' + themeName);
-  console.log(state);
-  
-  setTheme(themeHandler);
-  
-  
-}
-
 function _getHostConfig (hostName) {
   let domainData = {};
 
   let hostFile = hostName.replace('.', '_') + '.conf';
   let confPath = __dirname + '/hosts/';
   let hostConfPath = confPath + hostFile;
-
-  log.info("Load host data from " + hostConfPath);
 
   if (typeof domainsList[hostFile] != 'undefined') {
     return domainsList[hostFile];
@@ -132,7 +129,7 @@ function _getHostConfig (hostName) {
     domainData = require(hostConfPath);
         
     if (domainData.meta) {
-      domainData.hostName = hostName;
+      domainData.meta.host = hostName;
     } 
     
     domainsList[hostFile] = domainData;
@@ -151,3 +148,18 @@ function _getHostConfig (hostName) {
 
   return domainData;
 }
+
+function _loadDbConfig (store) { 
+  let state = store.getState();
+  let db = mongoose.connection;
+
+  ModDomain.findOne({dom: state.meta.host}, (err, domain) => {
+      if (err) {
+        log.debug('ERR ' + err);
+        return;
+      }
+  
+      _confActions.configDone(domain);        
+  });
+}
+

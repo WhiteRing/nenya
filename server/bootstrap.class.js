@@ -1,16 +1,15 @@
 'use strict';
 
-const STATUS_CODES  = require('./conf/status-codes.conf');
-const ACTIONS       = require('./stores/app.actions');
+// const STATUS_CODES  = require('./conf/status-codes.conf');
+// const ACTIONS       = require('./stores/app.actions');
 const CONF_PATH     = './conf';
 
 
 
 let nFlux           = require('nenya-flux')();
-let mRender         = require('mithril-node-render');
-let m               = require('mithril');
-let log             = require('winston');
+let Q               = require('q');
 let AppStore        = require('./stores/app.store');
+let NenyaRouter     = require('./router.class');
 let NenyaRenderer   = require('./renderer.class');
 let Configurator    = require(CONF_PATH);
 
@@ -19,52 +18,36 @@ let Configurator    = require(CONF_PATH);
 class NenyaBootstrap {
     
   constructor () {
-    this._appStore      = AppStore(_initialState());
-    this._appStoreSub   = nFlux.createSubscription(this._appStore);
-    this._actions       = _makeActions();
-    this._configurator  = Configurator(this._appStoreSub);
-        
-    _bindSubscribers(this._appStoreSub);
+    this._appStore      = AppStore({});
+    this._subscription  = nFlux.createSubscription(this._appStore);
+    this._configurator  = Configurator(this._subscription);
+    this._router        = NenyaRouter(this._subscription);
+    this._renderer      = new NenyaRenderer(this._appStore);        
   }
     
   boot (conn) {
-    log.info('// >>>>>>>>>>>>>>>');
-        
+    var deferred = Q.defer();
+          
     this._appStore.resetState();
-    
-    this._configurator.configure(conn.hostname);
+    this._configurator.configure(conn);
 
-    log.info('// <<<<<<<<<<<<<<<');
+    let self = this;
     
-    this._actions.appReady(conn);
-
-    log.info('.');
+    this._wait = setInterval(() => {
+      console.log(',');
+      
+      if (self._appStore.isReady()) {
+        console.log('.');
+        clearInterval(self._wait);
+        deferred.resolve(self._renderer.render());
+      }
+    }, 100);
+    
+    return deferred.promise;    
   }
-    
 }
 
 
 
 module.exports = NenyaBootstrap;
-
-
-
-function _makeActions () {
-  return {
-    appReady: nFlux.createAction(ACTIONS.APP_READY)
-  }
-}
-
-function _bindSubscribers (subscription) {
-  subscription(_render, ACTIONS.APP_READY); 
-}  
-
-function _initialState () {
-  return {};
-} 
-
-function _render (store) {
-  let nRenderer = new NenyaRenderer(store);
-  nRenderer.render();  
-}
 

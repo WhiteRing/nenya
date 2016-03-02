@@ -6,16 +6,9 @@
     "langIso": "ro_RO"
   },
 
-  "database": {
-    "type": "mongodb",
-    "host": "127.0.0.1",
-    "user": "",
-    "pass": ""
-  },
-
   "env": {
     "type": "DEV",
-    "isMultisite": true,
+    "host": "weekendplaces.ro",
     "static": "cdn.media-store.ro"
   }
 }

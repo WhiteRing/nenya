@@ -5,9 +5,6 @@ let mRender         = require('mithril-node-render');
 let NenyaComponents = require('nenya-components');
 let log             = require('winston');
 
-let nButton 		= new NenyaComponents.base.button.component({});
-
-
 
 class NenyaRenderer {
 
@@ -18,15 +15,15 @@ class NenyaRenderer {
   }
 
   render () {
-    log.info('Renderer render');
-    let conn = this._appStore.getState().connection;
+    let state = this._appStore.getState();
+    let conn = state.request.conn;
     let statusCode = this._appStore.statusCode;
+    let docHeader = this._appStore.doctypeHeader;
     let vDom = m.component(this._nHtml.m());
-    let pageContent = mRender(vDom);
-
-    conn.html(statusCode, pageContent);
+    let pageContent = mRender(vDom);   
+    
+    return pageContent;
   }
-
 }
 
 

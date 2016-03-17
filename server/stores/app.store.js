@@ -30,7 +30,9 @@ let emptyState = {
   //  
   page:   {
     statusCode: STATUS_CODES.SUCCESS,
-    docType:    "html5" 
+    docType:    "html5",
+    styles: [],    
+    scripts: []
   },
      
   //
@@ -91,6 +93,8 @@ class AppStore extends NenyaFlux.NenyaStore {
     this.addAction(ACTIONS.SET_ENVIRONMENT,   setEnvironment);
     this.addAction(ACTIONS.SET_SITE_META,     setSiteMeta);
     this.addAction(ACTIONS.ADD_PAGE_META,     addPageMeta);
+    // this.addAction(ACTIONS.ADD_STYLESHEET,    addStylesheet);
+    // this.addAction(ACTIONS.ADD_SCRIPT,        addScript);
     this.addAction(ACTIONS.SET_DATABASE,      setDatabase);
     this.addAction(ACTIONS.DB_CONNECTED,      dbConnected);
     this.addAction(ACTIONS.SET_REQUEST,       setRequest);
@@ -139,6 +143,14 @@ function setSiteMeta (state, meta) {
 
 function addPageMeta (state, meta) {
   state.page = Object.assign({}, state.page, meta);
+}
+
+function addStylesheet (state, path) {
+  state.page.styles[state.page.styles.length] = path;
+}
+
+function addScript (state, path) {
+  state.page.scripts[state.page.scripts.length] = path;
 }
 
 function setDatabase (state, dbData) {

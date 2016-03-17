@@ -74,6 +74,10 @@ function _routesLoaded (store) {
   let arrRequest = state.request.path.split('/');
   arrRequest.splice(0, 1);
   
+  //
+  // TODO: First search for full requested path in db
+  //
+  
   if (arrRequest.length > 0) {
     if (arrRequest.length === 1 && arrRequest[0] === '') {
       matchedRoute = 'home';
@@ -92,6 +96,8 @@ function _routesLoaded (store) {
       matchedRoute = filterRoute.length > 0 ? filterRoute[0] : "404";
     }
   }
+  
+  console.log(matchedRoute);
   
   // test entity
   let entity = '';
@@ -131,8 +137,9 @@ function _routesLoaded (store) {
   } else {
     routingData.wrapper = matchedRoute.wrp;
   }
+  console.log(routingData);
 
-  if (matchedRoute == '404' && matchedRoute == 'home') {
+  if (matchedRoute == '404' || matchedRoute == 'home') {
     _routeActions.setRoutingData(routingData); 
   }
 }

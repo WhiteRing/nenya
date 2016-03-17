@@ -6,6 +6,7 @@ module.exports = (store) => {
 
 
 
+let _           = require('lodash');
 let assert      = require('assert');
 let nFlux       = require('nenya-flux')();
 let log         = require('winston');
@@ -62,7 +63,6 @@ class NenyaConfigurator extends NenyaFluxit {
   }
 
   bindSubscriptions () {
-    console.log('bindSubscriptions configurator');
     this.subscribeToAppStore(_configureLogger,    ACTIONS.SET_ENVIRONMENT);
     this.subscribeToAppStore(_configureDatabase,  ACTIONS.SET_ENVIRONMENT);
     this.subscribeToAppStore(_configureSiteMeta,  ACTIONS.SET_SITE_META);
@@ -75,7 +75,7 @@ class NenyaConfigurator extends NenyaFluxit {
     let requestedPath = conn.location.properties.pathname; 
     let config = this._defaults;
     let hostConfig = _getHostConfig(hostName);
-    console.log("# PATH " + requestedPath);
+
     config.request = {
       conn: conn,
       path: requestedPath
@@ -137,8 +137,9 @@ function _getHostConfig (hostName) {
   catch (e) {
     log.error(e.message);
     domainData = {
+      _id:      0,
       status: 404,
-      error: "The domain " + hostName + " is not configured on this server.<br/>" + hostConfPath
+      error:  "The domain " + hostName + " is not configured on this server.<br/>" + hostConfPath
     };
   }
 
@@ -158,7 +159,17 @@ function _loadDbConfig (store) {
         log.debug('ERR ' + err);
         return;
       }
-  
+      
+      if (_.isNull(domain)) {
+        domain = {
+          _id: null,
+          thm: 'default',
+          dom: 'media-store.ro'
+        };
+      }
+      
+      console.log(domain);
+        
       _confActions.configDone(domain);        
   });
 }
